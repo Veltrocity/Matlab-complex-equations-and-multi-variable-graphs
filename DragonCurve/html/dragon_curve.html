@@ -1,0 +1,248 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN">
+<html xmlns:mwsh="http://www.mathworks.com/namespace/mcode/v1/syntaxhighlight.dtd">
+   <head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   
+      <!--
+This HTML is auto-generated from an M-file.
+To make changes, update the M-file and republish this document.
+      -->
+      <title>DRAGON CURVE (aka JURASSIC PARK FRACTAL)</title>
+      <meta name="generator" content="MATLAB 7.3">
+      <meta name="date" content="2007-01-09">
+      <meta name="m-file" content="dragon_curve"><style>
+
+body {
+  background-color: white;
+  margin:10px;
+}
+
+h1 {
+  color: #990000; 
+  font-size: x-large;
+}
+
+h2 {
+  color: #990000;
+  font-size: medium;
+}
+
+/* Make the text shrink to fit narrow windows, but not stretch too far in 
+wide windows. */ 
+p,h1,h2,div.content div {
+  max-width: 600px;
+  /* Hack for IE6 */
+  width: auto !important; width: 600px;
+}
+
+pre.codeinput {
+  background: #EEEEEE;
+  padding: 10px;
+}
+@media print {
+  pre.codeinput {word-wrap:break-word; width:100%;}
+} 
+
+span.keyword {color: #0000FF}
+span.comment {color: #228B22}
+span.string {color: #A020F0}
+span.untermstring {color: #B20000}
+span.syscmd {color: #B28C00}
+
+pre.codeoutput {
+  color: #666666;
+  padding: 10px;
+}
+
+pre.error {
+  color: red;
+}
+
+p.footer {
+  text-align: right;
+  font-size: xx-small;
+  font-weight: lighter;
+  font-style: italic;
+  color: gray;
+}
+
+  </style></head>
+   <body>
+      <div class="content">
+         <h1>DRAGON CURVE (aka JURASSIC PARK FRACTAL)</h1>
+         <introduction>
+            <p>The Dragon Curve is a fractal that was made famous in <b>Jurassic Park</b>, a novel by Michael Crichton.
+            </p>
+            <p>This file calculates and plots the Dragon Curve. The user is encouraged to make their own variations of the fractal by experimenting
+               with the following options:
+            </p>
+            <div>
+               <ul>
+                  <li>Initial starting shape</li>
+                  <li>Angle of rotation</li>
+                  <li>Number of fractal iterations</li>
+               </ul>
+            </div>
+            <p>NOTE: In order to prevent users from exceeding the memory capacities of their machines, there is a <tt>MAX_LENGTH</tt> variable that will limit the number of fractal iterations calculated. On my machine, setting this value greater than <tt>5e6</tt> becomes very taxing for the <tt>plot</tt> function, but the user is free to change it if they have more memory resources available.
+            </p>
+            <p>DISCLAIMER: This script can be a bit addicting! So enjoy being creative, but please be careful to keep one eye on the clock!
+               :c)
+            </p>
+            <p>AUTHOR: Joseph Kirk (c) 5/2006 EMAIL: jdkirk630 at gmail dot com</p>
+         </introduction>
+         <h2>Contents</h2>
+         <div>
+            <ul>
+               <li><a href="#1">DEFINE THE INITIAL SHAPE</a></li>
+               <li><a href="#2">SPECIFY THE ROTATING ANGLE (DEGREES)</a></li>
+               <li><a href="#3">SPECIFY THE NUMBER OF DESIRED FRACTAL ITERATIONS</a></li>
+               <li><a href="#4">LIMIT THE SIZE OF THE FRACTAL</a></li>
+               <li><a href="#5">GENERATE THE FRACTAL</a></li>
+               <li><a href="#6">PLOT THE X,Y COORDINATES</a></li>
+            </ul>
+         </div>
+         <h2>DEFINE THE INITIAL SHAPE<a name="1"></a></h2>
+         <p>The traditional Dragon Curve uses a straight line as the initial shape, but any starting shape will work! Below is a list
+            of some of my favorites:
+         </p>
+         <div>
+            <ul>
+               <li><tt>x=[0 1];  y=[0 0];  %LINE</tt></li>
+               <li><tt>x=linspace(0,2*pi,50);  y=-1.5*sin(x);  %S-CURVE</tt></li>
+               <li><tt>x=[0 1/3 0 1/3 0];  y=[0 1/4 1/2 3/4 1];  %W-CURVE</tt></li>
+               <li><tt>t=linspace(0,2*pi/3,20);  x=sin(t);  y=cos(t);  %ARC</tt></li>
+            </ul>
+         </div><pre class="codeinput"><span class="comment">% The x and y vectors must have at least two points each (or the result</span>
+<span class="comment">% will just be a single point) and they must have the same length</span>
+x=[1 0];  y=[0 0];  <span class="comment">%LINE</span>
+</pre><h2>SPECIFY THE ROTATING ANGLE (DEGREES)<a name="2"></a></h2>
+         <p>The traditional Dragon Curve uses a rotating angle of 90 degrees, but any angle can be specified here. The most interesting
+            fractals seem to be generated using angles between 80 and 120
+         </p><pre class="codeinput">angle=90;  <span class="comment">%degrees</span>
+</pre><h2>SPECIFY THE NUMBER OF DESIRED FRACTAL ITERATIONS<a name="3"></a></h2>
+         <p>Good choices for this number are generally between 5 and 20, depending on the length of the starting shape and the desired
+            resolution.
+         </p><pre class="codeinput">n=13;
+</pre><h2>LIMIT THE SIZE OF THE FRACTAL<a name="4"></a></h2>
+         <p>This is to prevent users from using too much memory.</p><pre class="codeinput">MAX_LENGTH=5e6;
+</pre><h2>GENERATE THE FRACTAL<a name="5"></a></h2><pre class="codeinput"><span class="comment">% Verify that we have valid (x,y) pairs</span>
+<span class="keyword">if</span> length(x)~=length(y)
+    disp(<span class="string">'ERROR: x and y vectors must have the same length'</span>);
+    <span class="keyword">return</span>
+<span class="keyword">end</span>
+<span class="comment">% Limit the size of the fractal</span>
+m=length(x);
+<span class="keyword">if</span> ((m-1)*2^(n-1)+1) &gt; MAX_LENGTH
+    n=ceil(log2((MAX_LENGTH-1)/(m-1)));
+    disp([<span class="string">'WARNING: maximum iterations exceeded ... setting n = '</span> num2str(n)]);
+<span class="keyword">end</span>
+<span class="comment">% Generate the fractal</span>
+<span class="keyword">for</span> k=1:n-1
+    xr = fliplr(x); yr = fliplr(y); a = x(length(x)); b = y(length(y));
+    [theta, rho]=cart2pol(xr - a,yr - b);
+    [rx0, ry0] = pol2cart(theta + angle*pi/180, rho);
+    rx = rx0 + a; ry = ry0 + b;
+    x=[x rx(2:length(rx))];
+    y=[y ry(2:length(rx))];
+<span class="keyword">end</span>
+</pre><h2>PLOT THE X,Y COORDINATES<a name="6"></a></h2><pre class="codeinput">figure;plot(x,y,<span class="string">'k'</span>);
+axis <span class="string">equal</span>
+axis <span class="string">off</span>
+title([<span class="string">'Dragon Curve (n = '</span> num2str(n) <span class="string">', angle = '</span> num2str(angle) <span class="string">')'</span>]);
+set(gcf,<span class="string">'color'</span>,<span class="string">'white'</span>);
+</pre><img vspace="5" hspace="5" src="dragon_curve_01.png"> <p class="footer"><br>
+            Published with MATLAB&reg; 7.3<br></p>
+      </div>
+      <!--
+##### SOURCE BEGIN #####
+%% DRAGON CURVE (aka JURASSIC PARK FRACTAL)
+% The Dragon Curve is a fractal that was made famous in *Jurassic Park*, a
+% novel by Michael Crichton. 
+% 
+% This file calculates and plots the Dragon Curve. The user is encouraged
+% to make their own variations of the fractal by experimenting with the
+% following options:
+% 
+% * Initial starting shape
+% * Angle of rotation
+% * Number of fractal iterations
+% 
+% NOTE: In order to prevent users from exceeding the memory capacities of
+% their machines, there is a |MAX_LENGTH| variable that will limit the
+% number of fractal iterations calculated. On my machine, setting this
+% value greater than |5e6| becomes very taxing for the |plot| function, but
+% the user is free to change it if they have more memory resources
+% available.
+% 
+% DISCLAIMER: This script can be a bit addicting! So enjoy being creative,
+% but please be careful to keep one eye on the clock! :c)
+% 
+% AUTHOR: Joseph Kirk (c) 5/2006
+% EMAIL: jdkirk630 at gmail dot com
+
+%% DEFINE THE INITIAL SHAPE
+% The traditional Dragon Curve uses a straight line as the initial shape,
+% but any starting shape will work! Below is a list of some of my favorites:
+% 
+% * |x=[0 1];  y=[0 0];  %LINE|
+% * |x=linspace(0,2*pi,50);  y=-1.5*sin(x);  %S-CURVE|
+% * |x=[0 1/3 0 1/3 0];  y=[0 1/4 1/2 3/4 1];  %W-CURVE|
+% * |t=linspace(0,2*pi/3,20);  x=sin(t);  y=cos(t);  %ARC|
+% 
+
+% The x and y vectors must have at least two points each (or the result
+% will just be a single point) and they must have the same length
+x=[1 0];  y=[0 0];  %LINE
+
+%% SPECIFY THE ROTATING ANGLE (DEGREES)
+% The traditional Dragon Curve uses a rotating angle of 90 degrees, but any
+% angle can be specified here. The most interesting fractals seem to be
+% generated using angles between 80 and 120
+angle=90;  %degrees
+
+%% SPECIFY THE NUMBER OF DESIRED FRACTAL ITERATIONS
+% Good choices for this number are generally between 5 and 20, depending on
+% the length of the starting shape and the desired resolution. 
+n=13;
+
+%% LIMIT THE SIZE OF THE FRACTAL
+% This is to prevent users from using too much memory.
+MAX_LENGTH=5e6;
+
+%% GENERATE THE FRACTAL
+
+% Verify that we have valid (x,y) pairs
+if length(x)~=length(y)
+    disp('ERROR: x and y vectors must have the same length');
+    return
+end
+% Limit the size of the fractal
+m=length(x);
+if ((m-1)*2^(n-1)+1) > MAX_LENGTH
+    n=ceil(log2((MAX_LENGTH-1)/(m-1)));
+    disp(['WARNING: maximum iterations exceeded ... setting n = ' num2str(n)]);
+end
+% Generate the fractal
+for k=1:n-1
+    xr = fliplr(x); yr = fliplr(y); a = x(length(x)); b = y(length(y));
+    [theta, rho]=cart2pol(xr - a,yr - b);
+    [rx0, ry0] = pol2cart(theta + angle*pi/180, rho);
+    rx = rx0 + a; ry = ry0 + b;
+    x=[x rx(2:length(rx))];
+    y=[y ry(2:length(rx))];
+end
+
+%% PLOT THE X,Y COORDINATES
+figure;plot(x,y,'k');
+axis equal
+axis off
+title(['Dragon Curve (n = ' num2str(n) ', angle = ' num2str(angle) ')']);
+set(gcf,'color','white');
+
+
+##### SOURCE END #####
+-->
+   </body>
+</html>
